@@ -1,16 +1,23 @@
-# ZTE OLT Management Tool
+# ZTE OLT Management API
 
-Web-based REST API untuk management ZTE OLT devices.
+![Go Version](https://img.shields.io/badge/Go-1.22+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
+
+RESTful API untuk management ZTE OLT devices dengan Fiber framework dan Docker support.
 
 ## 🚀 Features
 
-- **Web API**: RESTful API dengan Go native (no heavy framework)
-- **ONU Management**: Add, delete, dan monitoring ONU
-- **Attenuation Check**: Cek redaman daya optik
-- **Batch Commands**: Execute custom commands
-- **Template System**: Flexible command templates
-- **Real-time Execution**: Live feedback dengan timeout handling
-- **Clean Architecture**: Proper separation of concerns
+- **🌐 Web API**: RESTful API dengan Fiber v2 (high performance)
+- **📡 ONU Management**: Add, delete, dan monitoring ONU devices
+- **📊 Attenuation Check**: Cek redaman daya optik dengan parsing otomatis
+- **🔧 Batch Commands**: Execute custom commands pada OLT
+- **📝 Template System**: Flexible command templates dengan Go templates
+- **⚡ Real-time Execution**: Live feedback dengan timeout handling
+- **🏗️ Clean Architecture**: Proper separation of concerns
+- **🐳 Docker Ready**: Multi-stage Docker build dengan security best practices
+- **📈 Health Monitoring**: Built-in health checks dan logging
+- **🔐 Security**: Non-root user, CORS support, request validation
 
 ## 📁 Project Structure
 
@@ -31,28 +38,38 @@ go-zteolt/
 ## 🛠️ Quick Start
 
 ### Prerequisites
-- Go 1.21 or higher
-- Make (optional, for build commands)
+- **Go 1.22+** - Latest Go version
+- **Docker** - Optional, for containerization
+- **Make** - Optional, for build commands
 
 ### Installation
 
 1. **Clone repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/achyar10/go-zteolt.git
 cd go-zteolt
 ```
 
 2. **Install dependencies**
 ```bash
 make deps
+# atau
+go mod download && go mod tidy
 ```
 
 3. **Start development server**
 ```bash
+# Dengan hot reload (recommended untuk development)
 make dev
+
+# Tanpa hot reload
+make dev-simple
+
+# Atau langsung dengan go run
+go run cmd/server/main.go -dev
 ```
 
-Server will start on `http://localhost:8080`
+Server akan start pada `http://localhost:8080`
 
 ### Quick Test
 
@@ -60,25 +77,31 @@ Server will start on `http://localhost:8080`
 # Health check
 curl http://localhost:8080/api/v1/health
 
+# API Info
+curl http://localhost:8080/
+
 # List available templates
 curl http://localhost:8080/api/v1/templates
 ```
 
 ## 🌐 API Endpoints
 
-### Core Operations
+### Overview
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/health` | Health check |
-| GET | `/api/v1/templates` | List templates |
-| POST | `/api/v1/onu/add` | Add ONU |
-| POST | `/api/v1/onu/delete` | Delete ONU |
-| POST | `/api/v1/onu/check-attenuation` | Check attenuation |
+| GET | `/` | API information & endpoints list |
+| GET | `/api/v1/health` | Health check & service status |
+| GET | `/api/v1/templates` | List available command templates |
+| POST | `/api/v1/onu/add` | Add/register new ONU |
+| POST | `/api/v1/onu/delete` | Delete/remove ONU |
+| POST | `/api/v1/onu/check-attenuation` | Check optical power attenuation |
+| POST | `/api/v1/onu/check-unconfigured` | Find unconfigured ONUs |
 | POST | `/api/v1/batch/commands` | Execute custom commands |
 
-### Example: Add ONU
+### Example Usage
 
+#### Add ONU
 ```bash
 curl -X POST http://localhost:8080/api/v1/onu/add \
   -H "Content-Type: application/json" \
@@ -94,6 +117,51 @@ curl -X POST http://localhost:8080/api/v1/onu/add \
     "code": "220219123239"
   }'
 ```
+
+#### Check Attenuation
+```bash
+curl -X POST http://localhost:8080/api/v1/onu/check-attenuation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "host": "136.1.1.100",
+    "port": 23,
+    "user": "aba",
+    "password": "zte",
+    "slot": 2,
+    "olt_port": 4,
+    "onu": 17
+  }'
+```
+
+#### Render Commands Only (No Execution)
+```bash
+curl -X POST http://localhost:8080/api/v1/onu/add \
+  -H "Content-Type: application/json" \
+  -d '{
+    "host": "136.1.1.100",
+    "slot": 2,
+    "olt_port": 4,
+    "onu": 17,
+    "serial_number": "HWTC8A24189E",
+    "code": "220219123239",
+    "render_only": true
+  }'
+```
+
+### Response Format
+
+Semua response menggunakan format standar:
+```json
+{
+  "success": true,
+  "data": { ... },
+  "error": null,
+  "timestamp": "2024-01-01T12:00:00Z",
+  "request_id": "1234567890"
+}
+```
+
+📖 **Lihat dokumentasi lengkap API di [docs/api.md](docs/api.md)**
 
 ## 🏗️ Build & Deployment
 
@@ -112,16 +180,50 @@ make build            # Build all binaries
 make install          # Install to system
 ```
 
-### Docker
+### Docker Deployment
+
+#### Build & Run
 ```bash
-make docker-build     # Build Docker image
-make docker-run       # Run Docker container
+# Build Docker image
+docker build -t go-zteolt:latest .
+
+# Run container
+docker run -p 8080:8080 go-zteolt:latest
+
+# Atau gun docker-compose (recommended)
+docker-compose up -d
+```
+
+#### Docker Compose
+```bash
+# Start dengan docker-compose
+docker-compose up --build
+
+# Background mode
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+#### Production Docker Build
+```bash
+# Build dengan version info
+docker build \
+  --build-arg VERSION=$(git describe --tags) \
+  --build-arg BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --build-arg GIT_COMMIT=$(git rev-parse HEAD) \
+  -t go-zteolt:latest .
 ```
 
 ## 📚 Documentation
 
-- **API Documentation**: [docs/api.md](docs/api.md)
-- **Legacy CLI**: Original CLI tool preserved as `main.go`
+- **📖 API Documentation**: [docs/api.md](docs/api.md) - Complete API reference
+- **🔧 Development Guide**: [docs/development.md](docs/development.md) - Contributing guidelines
+- **📋 Legacy CLI**: Original CLI tool preserved as `main.go`
 
 ## ⚙️ Configuration
 

@@ -20,10 +20,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    volumes:
-      # Uncomment jika perlu mount config atau logs
-      # - ./config:/app/config:ro
-      # - ./logs:/app/logs
     networks:
       - app-network
 
