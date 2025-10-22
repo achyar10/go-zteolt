@@ -28,11 +28,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -a -installsuffix cgo \
     -o bin/server cmd/server/main.go
 
-# Build CLI binary (optional)
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static" -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.gitCommit=${GIT_COMMIT}' \
-    -a -installsuffix cgo \
-    -o bin/cli main.go
+# Note: CLI binary not built - main.go doesn't exist in root directory
+# If CLI is needed, create main.go in root or remove this comment
 
 # Stage 2: Runtime stage
 FROM alpine:latest
@@ -49,7 +46,8 @@ WORKDIR /app
 
 # Copy binary dari builder stage
 COPY --from=builder /app/bin/server ./bin/server
-COPY --from=builder /app/bin/cli ./bin/cli
+# CLI binary not available - uncomment when main.go exists
+# COPY --from=builder /app/bin/cli ./bin/cli
 
 # Copy templates directory (jika ada)
 COPY --from=builder /app/templates ./templates
