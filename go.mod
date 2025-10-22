@@ -1,4 +1,4 @@
-module gitlab.matik.id/achyar/go-zteolt
+module github.com/achyar10/go-zteolt
 
 go 1.22
 

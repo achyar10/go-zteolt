@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.matik.id/achyar/go-zteolt/internal/config"
-	"gitlab.matik.id/achyar/go-zteolt/internal/olt"
-	"gitlab.matik.id/achyar/go-zteolt/internal/utils"
+	"github.com/achyar10/go-zteolt/internal/config"
+	"github.com/achyar10/go-zteolt/internal/olt"
+	"github.com/achyar10/go-zteolt/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -257,14 +257,14 @@ func extractAttenuationOutput(fullOutput string) string {
 
 		// Skip headers and prompts
 		if strings.Contains(line, "===") || strings.HasPrefix(line, ">>>") ||
-		   strings.HasPrefix(line, "ZXAN") || line == "" {
+			strings.HasPrefix(line, "ZXAN") || line == "" {
 			continue
 		}
 
 		// Start collecting data when we see relevant content
 		if strings.Contains(line, "OLT") || strings.Contains(line, "ONU") ||
-		   strings.Contains(line, "Attenuation") || strings.Contains(line, "up") ||
-		   strings.Contains(line, "down") {
+			strings.Contains(line, "Attenuation") || strings.Contains(line, "up") ||
+			strings.Contains(line, "down") {
 			inData = true
 		}
 
@@ -328,11 +328,11 @@ func (h *Handlers) CheckUnconfigured(c *fiber.Ctx) error {
 			onus := make([]UnconfiguredONUDTO, len(parsedData.ONUs))
 			for i, onu := range parsedData.ONUs {
 				onus[i] = UnconfiguredONUDTO{
-					OLTIndex:    onu.OLTIndex,
-					Model:       onu.Model,
+					OLTIndex:     onu.OLTIndex,
+					Model:        onu.Model,
 					SerialNumber: onu.SerialNumber,
-					Slot:        onu.Slot,
-					Port:        onu.Port,
+					Slot:         onu.Slot,
+					Port:         onu.Port,
 				}
 			}
 
@@ -342,23 +342,23 @@ func (h *Handlers) CheckUnconfigured(c *fiber.Ctx) error {
 				converted := make([]UnconfiguredONUDTO, len(slotONUs))
 				for i, onu := range slotONUs {
 					converted[i] = UnconfiguredONUDTO{
-						OLTIndex:    onu.OLTIndex,
-						Model:       onu.Model,
+						OLTIndex:     onu.OLTIndex,
+						Model:        onu.Model,
 						SerialNumber: onu.SerialNumber,
-						Slot:        onu.Slot,
-						Port:        onu.Port,
+						Slot:         onu.Slot,
+						Port:         onu.Port,
 					}
 				}
 				grouped[slot] = converted
 			}
 
 			unconfiguredData = &UnconfiguredONUListDTO{
-				Host:         parsedData.Host,
-				TotalCount:   parsedData.TotalCount,
-				ONUs:         onus,
+				Host:          parsedData.Host,
+				TotalCount:    parsedData.TotalCount,
+				ONUs:          onus,
 				GroupedBySlot: grouped,
-				Status:       utils.GetUnconfiguredStatus(parsedData.TotalCount),
-				RawOutput:    parsedData.RawOutput,
+				Status:        utils.GetUnconfiguredStatus(parsedData.TotalCount),
+				RawOutput:     parsedData.RawOutput,
 			}
 		}
 	}
@@ -387,13 +387,13 @@ func extractUnconfiguredOutput(fullOutput string) string {
 
 		// Skip headers and prompts
 		if strings.Contains(line, "===") || strings.HasPrefix(line, ">>>") ||
-		   strings.HasPrefix(line, "ZXAN") || line == "" {
+			strings.HasPrefix(line, "ZXAN") || line == "" {
 			continue
 		}
 
 		// Start collecting data when we see relevant content
 		if strings.Contains(line, "OltIndex") || strings.Contains(line, "Model") ||
-		   strings.Contains(line, "SN") || strings.Contains(line, "gpon-olt_") {
+			strings.Contains(line, "SN") || strings.Contains(line, "gpon-olt_") {
 			inData = true
 		}
 
@@ -430,13 +430,13 @@ func (h *Handlers) BatchCommands(c *fiber.Ctx) error {
 	}
 
 	response := ONUCommandResponse{
-		Host:    result.Host,
-		Mode:    "batch",
+		Host:     result.Host,
+		Mode:     "batch",
 		Commands: req.Commands,
-		Output:  result.Output,
-		Success: result.Success,
-		Error:   result.Error,
-		Time:    result.Time,
+		Output:   result.Output,
+		Success:  result.Success,
+		Error:    result.Error,
+		Time:     result.Time,
 	}
 
 	return c.JSON(h.createAPIResponse(true, response, ""))
@@ -445,9 +445,9 @@ func (h *Handlers) BatchCommands(c *fiber.Ctx) error {
 // HealthCheck handles health check requests
 func (h *Handlers) HealthCheck(c *fiber.Ctx) error {
 	response := HealthCheckResponse{
-		Status:   "healthy",
-		Version:  "1.0.0",
-		Uptime:   "0h 0m 0s", // TODO: Calculate actual uptime
+		Status:  "healthy",
+		Version: "1.0.0",
+		Uptime:  "0h 0m 0s", // TODO: Calculate actual uptime
 		Services: map[string]string{
 			"olt":       "ok",
 			"templates": "ok",
@@ -474,18 +474,18 @@ func (h *Handlers) ListTemplates(c *fiber.Ctx) error {
 // APIInfo handles root path requests
 func (h *Handlers) APIInfo(c *fiber.Ctx) error {
 	data := map[string]interface{}{
-		"name":    "ZTE OLT Management API",
-		"version": "1.0.0",
-		"status":  "running",
+		"name":      "ZTE OLT Management API",
+		"version":   "1.0.0",
+		"status":    "running",
 		"framework": "Fiber v2",
 		"endpoints": map[string]string{
-			"health":              "/api/v1/health",
-			"templates":           "/api/v1/templates",
-			"add_onu":             "/api/v1/onu/add",
-			"delete_onu":          "/api/v1/onu/delete",
-			"check_attenuation":   "/api/v1/onu/check-attenuation",
+			"health":             "/api/v1/health",
+			"templates":          "/api/v1/templates",
+			"add_onu":            "/api/v1/onu/add",
+			"delete_onu":         "/api/v1/onu/delete",
+			"check_attenuation":  "/api/v1/onu/check-attenuation",
 			"check_unconfigured": "/api/v1/onu/check-unconfigured",
-			"batch_commands":      "/api/v1/batch/commands",
+			"batch_commands":     "/api/v1/batch/commands",
 		},
 	}
 

@@ -80,7 +80,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 CMD ["./bin/server"]
 
 # Labels untuk metadata
-LABEL maintainer="achyar" \
+LABEL maintainer="Achyar Anshorie <achyar@matik.id>" \
       version="${VERSION}" \
       description="ZTE OLT Management API" \
-      org.opencontainers.image.source="https://gitlab.matik.id/achyar/go-zteolt"
+      org.opencontainers.image.source="https://github.com/achyar10/go-zteolt"

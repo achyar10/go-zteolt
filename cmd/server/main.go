@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.matik.id/achyar/go-zteolt/internal/api"
-	"gitlab.matik.id/achyar/go-zteolt/internal/config"
-	"gitlab.matik.id/achyar/go-zteolt/internal/olt"
+	"github.com/achyar10/go-zteolt/internal/api"
+	"github.com/achyar10/go-zteolt/internal/config"
+	"github.com/achyar10/go-zteolt/internal/olt"
 )
 
 func main() {
