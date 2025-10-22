@@ -1,0 +1,4 @@
+conf t
+interface gpon-olt_1/{{.Slot}}/{{.Port}}
+no onu {{.Onu}}
+end

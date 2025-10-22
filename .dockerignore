@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+CHANGES.md
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+
+# Build artifacts
+bin/
+coverage.out
+coverage.html
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development files
+.air.toml
+Makefile
+
+# Docker files
+Dockerfile*
+.dockerignore

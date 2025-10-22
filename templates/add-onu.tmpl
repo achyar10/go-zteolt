@@ -1,0 +1,29 @@
+con t
+interface gpon-olt_1/{{.Slot}}/{{.Port}}
+onu {{.Onu}} type ALL sn {{.SerialNumber}}
+exit
+interface gpon-onu_1/{{.Slot}}/{{.Port}}:{{.Onu}}
+name {{.Code}}
+tcont 1 profile ABA-1G-UP
+gemport 1 tcont 1
+gemport 1 traffic-limit downstream ABA-1G-DOWN
+service-port 1 vport 1 user-vlan 143 vlan 143
+exit
+pon-onu-mng gpon-onu_1/{{.Slot}}/{{.Port}}:{{.Onu}}
+flow mode 1 tag-filter vlan-filter untag-filter discard
+flow 1 pri 0 vlan 143
+gemport 1 flow 1
+switchport-bind switch_0/1 iphost 1
+switchport-bind switch_0/1 veip 1
+pppoe 1 nat enable user {{.Code}} password aba
+vlan-filter-mode iphost 1 tag-filter vlan-filter untag-filter discard
+vlan-filter iphost 1 pri 0 vlan 143
+dhcp-ip ethuni eth_0/1 from-onu
+dhcp-ip ethuni eth_0/2 from-onu
+dhcp-ip ethuni eth_0/3 from-onu
+dhcp-ip ethuni eth_0/4 from-onu
+security-mgmt 1 state enable mode forward protocol web
+security-mgmt 1 start-src-ip 172.16.0.0 end-src-ip 172.16.255.255
+security-mgmt 998 state enable mode forward ingress-type lan
+security-mgmt 999 state enable ingress-type lan protocol ftp telnet ssh snmp tr069
+end
