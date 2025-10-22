@@ -24,19 +24,13 @@ ARG GIT_COMMIT
 
 # Build server binary dengan optimization
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static"' \
-    -X main.version=${VERSION} \
-    -X main.buildTime=${BUILD_TIME} \
-    -X main.gitCommit=${GIT_COMMIT} \
+    -ldflags='-w -s -extldflags "-static" -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.gitCommit=${GIT_COMMIT}' \
     -a -installsuffix cgo \
     -o bin/server cmd/server/main.go
 
 # Build CLI binary (optional)
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static"' \
-    -X main.version=${VERSION} \
-    -X main.buildTime=${BUILD_TIME} \
-    -X main.gitCommit=${GIT_COMMIT} \
+    -ldflags='-w -s -extldflags "-static" -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.gitCommit=${GIT_COMMIT}' \
     -a -installsuffix cgo \
     -o bin/cli main.go
 
