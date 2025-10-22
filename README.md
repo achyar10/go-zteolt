@@ -83,10 +83,10 @@ curl http://localhost:8080/api/v1/templates
 curl -X POST http://localhost:8080/api/v1/onu/add \
   -H "Content-Type: application/json" \
   -d '{
-    "host": "103.249.18.134",
-    "port": 2727,
+    "host": "136.1.1.100",
+    "port": 23,
     "user": "aba",
-    "password": "@aba1010#",
+    "password": "zte",
     "slot": 2,
     "olt_port": 4,
     "onu": 17,

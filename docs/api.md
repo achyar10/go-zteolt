@@ -79,10 +79,10 @@ Add new ONU to ZTE OLT.
 **Request Body:**
 ```json
 {
-  "host": "103.249.18.134",
-  "port": 2727,
+  "host": "136.1.1.100",
+  "port": 23,
   "user": "aba",
-  "password": "@aba1010#",
+  "password": "zte",
   "slot": 2,
   "olt_port": 4,
   "onu": 17,
@@ -97,10 +97,10 @@ Add new ONU to ZTE OLT.
 {
   "success": true,
   "data": {
-    "host": "103.249.18.134",
+    "host": "136.1.1.100",
     "mode": "add-onu",
     "commands": ["con t", "interface gpon-olt_1/2/4", ...],
-    "output": "=== 103.249.18.134:2727 ===\n>>> con t\n...",
+    "output": "=== 136.1.1.100:23 ===\n>>> con t\n...",
     "success": true,
     "time": "8.5s",
     "render_only": false
@@ -116,10 +116,10 @@ Delete ONU from ZTE OLT.
 **Request Body:**
 ```json
 {
-  "host": "103.249.18.134",
-  "port": 2727,
+  "host": "136.1.1.100",
+  "port": 23,
   "user": "aba",
-  "password": "@aba1010#",
+  "password": "zte",
   "slot": 2,
   "olt_port": 4,
   "onu": 17,
@@ -135,10 +135,10 @@ Check optical power attenuation.
 **Request Body:**
 ```json
 {
-  "host": "103.249.18.134",
-  "port": 2727,
+  "host": "136.1.1.100",
+  "port": 23,
   "user": "aba",
-  "password": "@aba1010#",
+  "password": "zte",
   "slot": 2,
   "olt_port": 4,
   "onu": 17,
@@ -151,7 +151,7 @@ Check optical power attenuation.
 {
   "success": true,
   "data": {
-    "host": "103.249.18.134",
+    "host": "136.1.1.100",
     "mode": "check-attenuation",
     "output": "show pon power attenuation gpon-onu_1/2/4:17\n...",
     "success": true,
@@ -168,10 +168,10 @@ Execute custom commands.
 **Request Body:**
 ```json
 {
-  "host": "103.249.18.134",
-  "port": 2727,
+  "host": "136.1.1.100",
+  "port": 23,
   "user": "aba",
-  "password": "@aba1010#",
+  "password": "zte",
   "commands": [
     "show version",
     "show interface gpon-olt_1/2/4",
@@ -191,10 +191,10 @@ curl http://localhost:8080/api/v1/health
 curl -X POST http://localhost:8080/api/v1/onu/add \
   -H "Content-Type: application/json" \
   -d '{
-    "host": "103.249.18.134",
-    "port": 2727,
+    "host": "136.1.1.100",
+    "port": 23,
     "user": "aba",
-    "password": "@aba1010#",
+    "password": "zte",
     "slot": 2,
     "olt_port": 4,
     "onu": 17,
@@ -206,10 +206,10 @@ curl -X POST http://localhost:8080/api/v1/onu/add \
 curl -X POST http://localhost:8080/api/v1/onu/check-attenuation \
   -H "Content-Type: application/json" \
   -d '{
-    "host": "103.249.18.134",
-    "port": 2727,
+    "host": "136.1.1.100",
+    "port": 23,
     "user": "aba",
-    "password": "@aba1010#",
+    "password": "zte",
     "slot": 2,
     "olt_port": 4,
     "onu": 17
@@ -225,10 +225,10 @@ const response = await fetch('http://localhost:8080/api/v1/onu/add', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    host: '103.249.18.134',
-    port: 2727,
+    host: '136.1.1.100',
+    port: 23,
     user: 'aba',
-    password: '@aba1010#',
+    password: 'zte',
     slot: 2,
     olt_port: 4,
     onu: 17,
