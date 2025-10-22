@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-zte
+  labels:
+    app: go-zte
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-zte
+  template:
+    metadata:
+      labels:
+        app: go-zte 
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+      - name: go-zte
+        image: registry.matik.id/go-zte:latest
+        ports:
+          - containerPort: 8080
+        env:
+          - name: APP_ENV
+            value: 'production'
+          - name: TZ
+            value: 'Asia/Jakarta'
+        
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-zte-service
+spec:
+  selector:
+    app: go-zte 
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
