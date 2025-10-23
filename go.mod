@@ -2,7 +2,10 @@ module github.com/achyar10/go-zteolt
 
 go 1.22
 
-require github.com/gofiber/fiber/v2 v2.52.4
+require (
+	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gosnmp/gosnmp v1.36.1
+)
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect

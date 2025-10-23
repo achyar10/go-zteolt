@@ -46,5 +46,10 @@ func SetupRoutes(handlers *Handlers) *fiber.App {
 	// Batch operations
 	v1.Post("/batch/commands", handlers.BatchCommands)
 
+	// SNMP Monitoring operations
+	v1.Post("/board/:board_id/pon/:pon_id/snmp", handlers.GetONUByBoardAndPON)
+	v1.Post("/board/:board_id/pon/:pon_id/onu/:onu_id/snmp", handlers.GetONUDetailsSNMP)
+	v1.Post("/board/:board_id/pon/:pon_id/empty-slots/snmp", handlers.GetEmptySlotsSNMP)
+
 	return app
 }

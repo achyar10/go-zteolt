@@ -44,18 +44,18 @@ type CheckAttenuationRequest struct {
 
 // AttenuationData represents parsed attenuation information
 type AttenuationData struct {
-	Host        string        `json:"host"`
-	Slot        int           `json:"slot"`
-	Port        int           `json:"port"`
-	ONU         int           `json:"onu"`
-	Direction   string        `json:"direction"`
-	OLTRxPower  float64       `json:"olt_rx_power_dbm"`
-	OLTTxPower  float64       `json:"olt_tx_power_dbm"`
-	ONURxPower  float64       `json:"onu_rx_power_dbm"`
-	ONUTxPower  float64       `json:"onu_tx_power_dbm"`
-	Attenuation float64       `json:"attenuation_db"`
-	Status      string        `json:"status"`
-	RawOutput   string        `json:"raw_output,omitempty"`
+	Host        string  `json:"host"`
+	Slot        int     `json:"slot"`
+	Port        int     `json:"port"`
+	ONU         int     `json:"onu"`
+	Direction   string  `json:"direction"`
+	OLTRxPower  float64 `json:"olt_rx_power_dbm"`
+	OLTTxPower  float64 `json:"olt_tx_power_dbm"`
+	ONURxPower  float64 `json:"onu_rx_power_dbm"`
+	ONUTxPower  float64 `json:"onu_tx_power_dbm"`
+	Attenuation float64 `json:"attenuation_db"`
+	Status      string  `json:"status"`
+	RawOutput   string  `json:"raw_output,omitempty"`
 }
 
 // CheckAttenuationResponse represents response for check attenuation
@@ -71,32 +71,32 @@ type CheckAttenuationResponse struct {
 
 // UnconfiguredONU represents parsed ONU unconfigured data
 type UnconfiguredONUDTO struct {
-	OLTIndex    string `json:"olt_index"`
-	Model       string `json:"model"`
+	OLTIndex     string `json:"olt_index"`
+	Model        string `json:"model"`
 	SerialNumber string `json:"serial_number"`
-	Slot        int    `json:"slot"`
-	Port        int    `json:"port"`
+	Slot         int    `json:"slot"`
+	Port         int    `json:"port"`
 }
 
 // UnconfiguredONUListResponse represents response for check unconfigured ONUs
 type UnconfiguredONUListResponse struct {
-	Host          string                       `json:"host"`
-	Mode          string                       `json:"mode"`
-	Success       bool                         `json:"success"`
-	Error         string                       `json:"error,omitempty"`
-	Time          string                       `json:"execution_time"`
-	RenderOnly    bool                         `json:"render_only"`
-	Data          *UnconfiguredONUListDTO       `json:"data,omitempty"`
+	Host       string                  `json:"host"`
+	Mode       string                  `json:"mode"`
+	Success    bool                    `json:"success"`
+	Error      string                  `json:"error,omitempty"`
+	Time       string                  `json:"execution_time"`
+	RenderOnly bool                    `json:"render_only"`
+	Data       *UnconfiguredONUListDTO `json:"data,omitempty"`
 }
 
 // UnconfiguredONUListDTO represents the data transfer object for unconfigured ONUs
 type UnconfiguredONUListDTO struct {
-	Host         string                     `json:"host"`
-	TotalCount   int                        `json:"total_count"`
-	ONUs         []UnconfiguredONUDTO       `json:"onus"`
+	Host          string                          `json:"host"`
+	TotalCount    int                             `json:"total_count"`
+	ONUs          []UnconfiguredONUDTO            `json:"onus"`
 	GroupedBySlot map[string][]UnconfiguredONUDTO `json:"grouped_by_slot,omitempty"`
-	Status       string                     `json:"status"`
-	RawOutput    string                     `json:"raw_output,omitempty"`
+	Status        string                          `json:"status"`
+	RawOutput     string                          `json:"raw_output,omitempty"`
 }
 
 // AttenuationDataDTO represents the data transfer object for attenuation
@@ -169,4 +169,76 @@ type ErrorResponse struct {
 	Error   string `json:"error"`
 	Code    int    `json:"code"`
 	Details string `json:"details,omitempty"`
+}
+
+// SNMP Monitoring Request/Response models
+
+// SNMPMonitoringRequest represents SNMP monitoring request
+type SNMPMonitoringRequest struct {
+	Host      string `json:"host" binding:"required"`
+	Port      int    `json:"port" binding:"required"`
+	Community string `json:"community" binding:"required"`
+	Timeout   int    `json:"timeout,omitempty"` // optional timeout in seconds
+}
+
+// SNMPONUInfo represents ONU information from SNMP
+type SNMPONUInfo struct {
+	Board        int    `json:"board"`
+	PON          int    `json:"pon"`
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	SerialNumber string `json:"serial_number"`
+	OnuType      string `json:"onu_type"`
+	RXPower      string `json:"rx_power"`
+	TXPower      string `json:"tx_power"`
+	Status       string `json:"status"`
+	IPAddress    string `json:"ip_address,omitempty"`
+	LastOnline   string `json:"last_online,omitempty"`
+	Uptime       string `json:"uptime,omitempty"`
+}
+
+// SNMPMonitoringResponse represents SNMP monitoring response
+type SNMPMonitoringResponse struct {
+	Host          string        `json:"host"`
+	BoardID       int           `json:"board_id"`
+	PONID         int           `json:"pon_id"`
+	TotalONUs     int           `json:"total_onus"`
+	ONUs          []SNMPONUInfo `json:"onus"`
+	ExecutionTime string        `json:"execution_time"`
+	Timestamp     time.Time     `json:"timestamp"`
+}
+
+// SNMPONUDetailsRequest represents request for specific ONU details
+type SNMPONUDetailsRequest struct {
+	Host      string `json:"host" binding:"required"`
+	Port      int    `json:"port" binding:"required"`
+	Community string `json:"community" binding:"required"`
+	Timeout   int    `json:"timeout,omitempty"`
+}
+
+// SNMPEmptySlotsRequest represents request for empty ONU slots
+type SNMPEmptySlotsRequest struct {
+	Host      string `json:"host" binding:"required"`
+	Port      int    `json:"port" binding:"required"`
+	Community string `json:"community" binding:"required"`
+	Timeout   int    `json:"timeout,omitempty"`
+}
+
+// SNMPEmptySlot represents an empty ONU slot
+type SNMPEmptySlot struct {
+	Board int `json:"board"`
+	PON   int `json:"pon"`
+	ONUID int `json:"onu_id"`
+}
+
+// SNMPEmptySlotsResponse represents response for empty ONU slots
+type SNMPEmptySlotsResponse struct {
+	Host          string          `json:"host"`
+	BoardID       int             `json:"board_id"`
+	PONID         int             `json:"pon_id"`
+	TotalEmpty    int             `json:"total_empty"`
+	EmptySlots    []SNMPEmptySlot `json:"empty_slots"`
+	ExecutionTime string          `json:"execution_time"`
+	Timestamp     time.Time       `json:"timestamp"`
 }

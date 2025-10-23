@@ -4,6 +4,7 @@ onu {{.Onu}} type ALL sn {{.SerialNumber}}
 exit
 interface gpon-onu_1/{{.Slot}}/{{.Port}}:{{.Onu}}
 name {{.Code}}
+description {{.Description}}
 tcont 1 profile ABA-1G-UP
 gemport 1 tcont 1
 gemport 1 traffic-limit downstream ABA-1G-DOWN
