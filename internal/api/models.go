@@ -129,6 +129,51 @@ type CheckUnconfiguredRequest struct {
 	RenderOnly bool   `json:"render_only"`
 }
 
+// RebootONURequest represents request to reboot ONU
+type RebootONURequest struct {
+	Host       string `json:"host" binding:"required"`
+	Port       int    `json:"port" binding:"required"`
+	User       string `json:"user" binding:"required"`
+	Password   string `json:"password" binding:"required"`
+	Board      int    `json:"board" binding:"required"`
+	PON        int    `json:"pon" binding:"required"`
+	ONU        int    `json:"onu" binding:"required"`
+	RenderOnly bool   `json:"render_only"`
+}
+
+// RebootONUResponse represents response for ONU reboot
+type RebootONUResponse struct {
+	Host       string `json:"host"`
+	Mode       string `json:"mode"`
+	Success    bool   `json:"success"`
+	Error      string `json:"error,omitempty"`
+	Time       string `json:"execution_time"`
+	RenderOnly bool   `json:"render_only"`
+}
+
+// SaveConfigurationRequest represents request to save configuration
+type SaveConfigurationRequest struct {
+	Host       string `json:"host" binding:"required"`
+	Port       int    `json:"port" binding:"required"`
+	User       string `json:"user" binding:"required"`
+	Password   string `json:"password" binding:"required"`
+	Timeout    int    `json:"timeout,omitempty"` // custom timeout in seconds (default: 300s for save operations)
+	RenderOnly bool   `json:"render_only"`
+}
+
+// SaveConfigurationResponse represents response for save configuration
+type SaveConfigurationResponse struct {
+	Host       string `json:"host"`
+	Mode       string `json:"mode"`
+	Success    bool   `json:"success"`
+	Error      string `json:"error,omitempty"`
+	Time       string `json:"execution_time"`
+	RenderOnly bool   `json:"render_only"`
+	Output     string `json:"output,omitempty"`
+	Status     string `json:"status,omitempty"` // success, in_progress, failed, timeout
+	TimeoutUsed int   `json:"timeout_used,omitempty"` // timeout used in seconds (for debugging)
+}
+
 // BatchCommandsRequest represents request for batch commands
 type BatchCommandsRequest struct {
 	Host     string   `json:"host" binding:"required"`
@@ -141,7 +186,7 @@ type BatchCommandsRequest struct {
 // APIResponse represents standard API response
 type APIResponse struct {
 	Success   bool        `json:"success"`
-	Data      interface{} `json:"data,omitempty"`
+	Data      any        `json:"data,omitempty"`
 	Error     string      `json:"error,omitempty"`
 	Timestamp time.Time   `json:"timestamp"`
 	RequestID string      `json:"request_id,omitempty"`

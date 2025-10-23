@@ -40,8 +40,12 @@ func SetupRoutes(handlers *Handlers) *fiber.App {
 	// ONU operations
 	v1.Post("/onu/add", handlers.AddONU)
 	v1.Post("/onu/delete", handlers.DeleteONU)
+	v1.Post("/onu/reboot", handlers.RebootONU)
 	v1.Post("/onu/check-attenuation", handlers.CheckAttenuation)
 	v1.Post("/onu/check-unconfigured", handlers.CheckUnconfigured)
+
+	// System operations
+	v1.Post("/system/save-configuration", handlers.SaveConfiguration)
 
 	// Batch operations
 	v1.Post("/batch/commands", handlers.BatchCommands)

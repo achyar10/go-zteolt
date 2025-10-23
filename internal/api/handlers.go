@@ -32,7 +32,7 @@ func NewHandlers(oltService *olt.Service, templateMgr *config.TemplateManager) *
 }
 
 // createAPIResponse creates standard API response
-func (h *Handlers) createAPIResponse(success bool, data interface{}, errorMsg string) APIResponse {
+func (h *Handlers) createAPIResponse(success bool, data any, errorMsg string) APIResponse {
 	response := APIResponse{
 		Success:   success,
 		Data:      data,
@@ -52,7 +52,7 @@ func (h *Handlers) AddONU(c *fiber.Ctx) error {
 	}
 
 	// Render commands using template
-	commands, _, err := h.templateMgr.RenderTemplate("add-onu", map[string]interface{}{
+	commands, _, err := h.templateMgr.RenderTemplate("add-onu", map[string]any{
 		"Board":          req.Board,
 		"Pon":            req.PON,
 		"Onu":            req.ONU,
@@ -118,7 +118,7 @@ func (h *Handlers) DeleteONU(c *fiber.Ctx) error {
 	}
 
 	// Render commands using template
-	commands, _, err := h.templateMgr.RenderTemplate("delete-onu", map[string]interface{}{
+	commands, _, err := h.templateMgr.RenderTemplate("delete-onu", map[string]any{
 		"Board": req.Board,
 		"Pon":   req.PON,
 		"Onu":   req.ONU,
@@ -168,6 +168,161 @@ func (h *Handlers) DeleteONU(c *fiber.Ctx) error {
 	return c.JSON(h.createAPIResponse(true, response, ""))
 }
 
+// RebootONU handles reboot ONU requests
+func (h *Handlers) RebootONU(c *fiber.Ctx) error {
+	var req RebootONURequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			h.createAPIResponse(false, nil, "Invalid request body"))
+	}
+
+	// Render commands using template
+	commands, _, err := h.templateMgr.RenderTemplate("reboot-onu", map[string]any{
+		"Board": req.Board,
+		"Pon":   req.PON,
+		"Onu":   req.ONU,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			h.createAPIResponse(false, nil, "Template rendering failed"))
+	}
+
+	if req.RenderOnly {
+		return c.JSON(h.createAPIResponse(true, RebootONUResponse{
+			Host:       req.Host,
+			Mode:       "reboot-onu",
+			RenderOnly: true,
+			Success:    true,
+		}, ""))
+	}
+
+	// Execute commands on OLT
+	oltReq := olt.OLTRequest{
+		Host:     req.Host,
+		Port:     req.Port,
+		User:     req.User,
+		Password: req.Password,
+		Commands: commands,
+	}
+
+	ctx := c.Context()
+	result, err := h.oltService.ExecuteCommands(ctx, oltReq)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			h.createAPIResponse(false, nil, err.Error()))
+	}
+
+	response := RebootONUResponse{
+		Host:       result.Host,
+		Mode:       "reboot-onu",
+		Success:    result.Success,
+		Error:      result.Error,
+		Time:       result.Time,
+		RenderOnly: false,
+	}
+
+	return c.JSON(h.createAPIResponse(true, response, ""))
+}
+
+// SaveConfiguration handles save configuration requests
+func (h *Handlers) SaveConfiguration(c *fiber.Ctx) error {
+	var req SaveConfigurationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			h.createAPIResponse(false, nil, "Invalid request body"))
+	}
+
+	// Render commands using template
+	commands, _, err := h.templateMgr.RenderTemplate("save-config", nil)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			h.createAPIResponse(false, nil, "Template rendering failed"))
+	}
+
+	if req.RenderOnly {
+		return c.JSON(h.createAPIResponse(true, SaveConfigurationResponse{
+			Host:       req.Host,
+			Mode:       "save-config",
+			RenderOnly: true,
+			Success:    true,
+			Status:     "rendered",
+		}, ""))
+	}
+
+	// Set custom timeout if provided
+	customTimeout := time.Duration(0) // default
+	if req.Timeout > 0 {
+		customTimeout = time.Duration(req.Timeout) * time.Second
+	}
+
+	// Execute commands on OLT with extended timeout
+	oltReq := olt.OLTRequest{
+		Host:     req.Host,
+		Port:     req.Port,
+		User:     req.User,
+		Password: req.Password,
+		Commands: commands,
+	}
+
+	ctx := c.Context()
+	var result *olt.OLTResponse
+
+	// Use custom timeout method for save operations
+	if customTimeout > 0 {
+		result, err = h.oltService.ExecuteCommandsWithCustomTimeout(ctx, oltReq, customTimeout)
+	} else {
+		// Use extended default timeout for save operations (5 minutes minimum)
+		defaultSaveTimeout := 5 * 60 * time.Second // 5 minutes
+		result, err = h.oltService.ExecuteCommandsWithCustomTimeout(ctx, oltReq, defaultSaveTimeout)
+		if err == nil && !result.Success && strings.Contains(result.Error, "timed out") {
+			result.Error = "Save operation timed out even with extended timeout. Consider setting the 'timeout' parameter (in seconds) for very large configurations or busy OLTs."
+		}
+	}
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			h.createAPIResponse(false, nil, err.Error()))
+	}
+
+	// Determine status based on output
+	status := "completed"
+	if result.Success && result.Output != "" {
+		if strings.Contains(result.Output, "[OK]") {
+			status = "success"
+		} else if strings.Contains(result.Output, "Collecting configuration") {
+			status = "in_progress"
+		}
+	} else if !result.Success {
+		status = "failed"
+		// Check for specific timeout indicators
+		if strings.Contains(result.Output, "ERR: read timeout") ||
+		   strings.Contains(result.Error, "timed out") ||
+		   strings.Contains(result.Output, "timeout") {
+			status = "timeout"
+		}
+	}
+
+	// Calculate actual timeout used
+	timeoutUsed := req.Timeout
+	if timeoutUsed == 0 {
+		timeoutUsed = 300 // 5 minutes default for save operations
+	}
+
+	response := SaveConfigurationResponse{
+		Host:        result.Host,
+		Mode:        "save-config",
+		Success:     result.Success,
+		Error:       result.Error,
+		Time:        result.Time,
+		RenderOnly:  false,
+		Output:      result.Output,
+		Status:      status,
+		TimeoutUsed: timeoutUsed,
+	}
+
+	return c.JSON(h.createAPIResponse(true, response, ""))
+}
+
 // CheckAttenuation handles check attenuation requests
 func (h *Handlers) CheckAttenuation(c *fiber.Ctx) error {
 	var req CheckAttenuationRequest
@@ -186,7 +341,7 @@ func (h *Handlers) CheckAttenuation(c *fiber.Ctx) error {
 	}
 
 	// Render commands using template
-	commands, _, err := h.templateMgr.RenderTemplate("check-attenuation", map[string]interface{}{
+	commands, _, err := h.templateMgr.RenderTemplate("check-attenuation", map[string]any{
 		"Board": req.Board,
 		"Pon":   req.PON,
 		"Onu":   req.ONU,
@@ -468,7 +623,7 @@ func (h *Handlers) HealthCheck(c *fiber.Ctx) error {
 func (h *Handlers) ListTemplates(c *fiber.Ctx) error {
 	templates := h.templateMgr.GetAvailableTemplates()
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"templates": templates,
 		"count":     len(templates),
 	}
@@ -478,19 +633,21 @@ func (h *Handlers) ListTemplates(c *fiber.Ctx) error {
 
 // APIInfo handles root path requests
 func (h *Handlers) APIInfo(c *fiber.Ctx) error {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"name":      "ZTE OLT Management API",
 		"version":   "1.0.0",
 		"status":    "running",
 		"framework": "Fiber v2",
 		"endpoints": map[string]string{
-			"health":             "/api/v1/health",
-			"templates":          "/api/v1/templates",
-			"add_onu":            "/api/v1/onu/add",
-			"delete_onu":         "/api/v1/onu/delete",
-			"check_attenuation":  "/api/v1/onu/check-attenuation",
-			"check_unconfigured": "/api/v1/onu/check-unconfigured",
-			"batch_commands":     "/api/v1/batch/commands",
+			"health":               "/api/v1/health",
+			"templates":            "/api/v1/templates",
+			"add_onu":              "/api/v1/onu/add",
+			"delete_onu":           "/api/v1/onu/delete",
+			"reboot_onu":           "/api/v1/onu/reboot",
+			"check_attenuation":    "/api/v1/onu/check-attenuation",
+			"check_unconfigured":   "/api/v1/onu/check-unconfigured",
+			"save_configuration":   "/api/v1/system/save-configuration",
+			"batch_commands":       "/api/v1/batch/commands",
 		},
 	}
 

@@ -94,6 +94,73 @@ func (s *Service) ExecuteCommands(ctx context.Context, req OLTRequest) (*OLTResp
 	}, nil
 }
 
+// ExecuteCommandsWithCustomTimeout executes commands with custom timeout
+func (s *Service) ExecuteCommandsWithCustomTimeout(ctx context.Context, req OLTRequest, customTimeout time.Duration) (*OLTResponse, error) {
+	start := time.Now()
+
+	// Use custom timeout or default
+	timeout := customTimeout
+	if timeout == 0 {
+		timeout = s.timeout
+	}
+
+	// Set total timeout with extended buffer for save operations
+	totalCtx, cancel := context.WithTimeout(ctx, timeout*5) // 5x buffer for save operations
+	defer cancel()
+
+	// Create session with custom timeout
+	sess, err := NewSession(req.Host, req.Port, req.User, req.Password, req.Prompt, timeout)
+	if err != nil {
+		return &OLTResponse{
+			Host:    req.Host,
+			Success: false,
+			Error:   fmt.Sprintf("session creation failed: %v", err),
+			Time:    time.Since(start).String(),
+		}, nil
+	}
+	defer sess.Close()
+
+	// Login
+	header := fmt.Sprintf("== %s:%d ==\n", req.Host, req.Port)
+	_, err = sess.Login(totalCtx)
+	if err != nil {
+		return &OLTResponse{
+			Host:    req.Host,
+			Output:  header,
+			Success: false,
+			Error:   fmt.Sprintf("login failed: %v", err),
+			Time:    time.Since(start).String(),
+		}, nil
+	}
+
+	// Disable paging
+	_, _ = sess.Exec(totalCtx, "terminal length 0")
+	_, _ = sess.Exec(totalCtx, "screen-length 0 temporary")
+	_, _ = sess.Exec(totalCtx, "disable clipaging")
+
+	// Execute commands
+	batchOut, err := sess.ExecBatch(totalCtx, req.Commands)
+	output := header + batchOut
+
+	success := err == nil
+	errorMsg := ""
+	if err != nil {
+		errorMsg = err.Error()
+		// Check for timeout specifically
+		if totalCtx.Err() == context.DeadlineExceeded {
+			errorMsg = "Operation timed out. The save configuration process may take several minutes on busy OLTs. Consider increasing the timeout parameter."
+		}
+	}
+
+	return &OLTResponse{
+		Host:    req.Host,
+		Output:  output,
+		Success: success,
+		Error:   errorMsg,
+		Time:    time.Since(start).String(),
+	}, nil
+}
+
 // RenderCommand renders a single command for testing
 func (s *Service) RenderCommand(req OLTRequest) *OLTResponse {
 	return &OLTResponse{

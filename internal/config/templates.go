@@ -23,6 +23,8 @@ func NewTemplateManager() (*TemplateManager, error) {
 	templates := map[string]string{
 		"add-onu":            "templates/add-onu.tmpl",
 		"delete-onu":         "templates/delete-onu.tmpl",
+		"reboot-onu":         "templates/reboot-onu.tmpl",
+		"save-config":        "templates/save-config.tmpl",
 		"check-attenuation":  "templates/check-attenuation.tmpl",
 		"check-unconfigured": "templates/check-unconfigured.tmpl",
 	}
