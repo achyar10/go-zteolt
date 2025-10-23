@@ -54,7 +54,7 @@ func (h *Handlers) AddONU(c *fiber.Ctx) error {
 	// Render commands using template
 	commands, _, err := h.templateMgr.RenderTemplate("add-onu", map[string]interface{}{
 		"Board":          req.Board,
-		"PON":            req.PON,
+		"Pon":            req.PON,
 		"Onu":            req.ONU,
 		"SerialNumber":   req.SerialNumber,
 		"Name":           req.Name,

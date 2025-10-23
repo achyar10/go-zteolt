@@ -1,8 +1,8 @@
 con t
-interface gpon-olt_1/{{.Slot}}/{{.Port}}
+interface gpon-olt_1/{{.Board}}/{{.Pon}}
 onu {{.Onu}} type ALL sn {{.SerialNumber}}
 exit
-interface gpon-onu_1/{{.Slot}}/{{.Port}}:{{.Onu}}
+interface gpon-onu_1/{{.Board}}/{{.Pon}}:{{.Onu}}
 name {{.Name}}
 description {{.Description}}
 tcont 1 profile {{.TcontProfile}}
@@ -10,7 +10,7 @@ gemport 1 tcont 1
 gemport 1 traffic-limit downstream {{.TrafficLimit}}
 service-port 1 vport 1 user-vlan {{.VlanID}} vlan {{.VlanID}}
 exit
-pon-onu-mng gpon-onu_1/{{.Slot}}/{{.Port}}:{{.Onu}}
+pon-onu-mng gpon-onu_1/{{.Board}}/{{.Pon}}:{{.Onu}}
 flow mode 1 tag-filter vlan-filter untag-filter discard
 flow 1 pri 0 vlan {{.VlanID}}
 gemport 1 flow 1
