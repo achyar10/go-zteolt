@@ -8,28 +8,28 @@ import (
 
 // UnconfiguredONU represents parsed ONU unconfigured data
 type UnconfiguredONU struct {
-	OLTIndex string `json:"olt_index"`
-	Model    string `json:"model"`
+	OLTIndex     string `json:"olt_index"`
+	Model        string `json:"model"`
 	SerialNumber string `json:"serial_number"`
-	Slot     int    `json:"slot"`
-	Port     int    `json:"port"`
+	Board        int    `json:"board"`
+	PON          int    `json:"pon"`
 }
 
 // UnconfiguredONUList represents list of unconfigured ONUs
 type UnconfiguredONUList struct {
-	Host          string                `json:"host"`
-	TotalCount    int                   `json:"total_count"`
-	ONUs           []UnconfiguredONU     `json:"onus"`
-	GroupedBySlot  map[string][]UnconfiguredONU `json:"grouped_by_slot,omitempty"`
-	RawOutput      string                `json:"raw_output,omitempty"`
+	Host          string                       `json:"host"`
+	TotalCount    int                          `json:"total_count"`
+	ONUs          []UnconfiguredONU            `json:"onus"`
+	GroupedBySlot map[string][]UnconfiguredONU `json:"grouped_by_slot,omitempty"`
+	RawOutput     string                       `json:"raw_output,omitempty"`
 }
 
 // ParseUnconfiguredONUOutput parses the raw output from show pon onu uncfg command
 func ParseUnconfiguredONUOutput(host string, rawOutput string) *UnconfiguredONUList {
 	data := &UnconfiguredONUList{
 		Host:      host,
-		ONUs:       []UnconfiguredONU{},
-		RawOutput:  rawOutput,
+		ONUs:      []UnconfiguredONU{},
+		RawOutput: rawOutput,
 	}
 
 	// Remove ANSI escape sequences and clean the output
@@ -69,14 +69,14 @@ func parseONUEntries(output string) []UnconfiguredONU {
 		}
 
 		// Extract slot and port from OLT index
-		slot, port := parseOLTSlotPort(matches[1])
+		board, pon := parseOLTSlotPort(matches[1])
 
 		onu := UnconfiguredONU{
-			OLTIndex:    matches[1],
-			Model:       matches[2],
+			OLTIndex:     matches[1],
+			Model:        matches[2],
 			SerialNumber: matches[3],
-			Slot:        slot,
-			Port:        port,
+			Board:        board,
+			PON:          pon,
 		}
 
 		onus = append(onus, onu)
@@ -107,7 +107,7 @@ func groupONUsBySlot(onus []UnconfiguredONU) map[string][]UnconfiguredONU {
 	grouped := make(map[string][]UnconfiguredONU)
 
 	for _, onu := range onus {
-		slotKey := strconv.Itoa(onu.Slot)
+		slotKey := strconv.Itoa(onu.Board)
 		grouped[slotKey] = append(grouped[slotKey], onu)
 	}
 

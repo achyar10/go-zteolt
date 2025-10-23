@@ -6,16 +6,21 @@ import "time"
 
 // AddONURequest represents request to add ONU
 type AddONURequest struct {
-	Host         string `json:"host" binding:"required"`
-	Port         int    `json:"port" binding:"required"`
-	User         string `json:"user" binding:"required"`
-	Password     string `json:"password" binding:"required"`
-	Slot         int    `json:"slot" binding:"required"`
-	OLTPort      int    `json:"olt_port" binding:"required"`
-	ONU          int    `json:"onu" binding:"required"`
-	SerialNumber string `json:"serial_number" binding:"required"`
-	Code         string `json:"code" binding:"required"`
-	RenderOnly   bool   `json:"render_only"`
+	Host           string `json:"host" binding:"required"`
+	Port           int    `json:"port" binding:"required"`
+	User           string `json:"user" binding:"required"`
+	Password       string `json:"password" binding:"required"`
+	Board          int    `json:"board" binding:"required"`
+	PON            int    `json:"pon" binding:"required"`
+	ONU            int    `json:"onu" binding:"required"`
+	SerialNumber   string `json:"serial_number" binding:"required"`
+	Name           string `json:"name" binding:"required"`
+	SecretPassword string `json:"secret_password" binding:"required"`
+	Description    string `json:"description" binding:"required"`
+	VlanID         int    `json:"vlan_id" binding:"required"`
+	TcontProfile   string `json:"tcont_profile" binding:"required"`
+	TrafficLimit   string `json:"traffic_limit" binding:"required"`
+	RenderOnly     bool   `json:"render_only"`
 }
 
 // DeleteONURequest represents request to delete ONU
@@ -24,8 +29,8 @@ type DeleteONURequest struct {
 	Port       int    `json:"port" binding:"required"`
 	User       string `json:"user" binding:"required"`
 	Password   string `json:"password" binding:"required"`
-	Slot       int    `json:"slot" binding:"required"`
-	OLTPort    int    `json:"olt_port" binding:"required"`
+	Board      int    `json:"board" binding:"required"`
+	PON        int    `json:"pon" binding:"required"`
 	ONU        int    `json:"onu" binding:"required"`
 	RenderOnly bool   `json:"render_only"`
 }
@@ -36,8 +41,8 @@ type CheckAttenuationRequest struct {
 	Port       int    `json:"port" binding:"required"`
 	User       string `json:"user" binding:"required"`
 	Password   string `json:"password" binding:"required"`
-	Slot       int    `json:"slot" binding:"required"`
-	OLTPort    int    `json:"olt_port" binding:"required"`
+	Board      int    `json:"board" binding:"required"`
+	PON        int    `json:"pon" binding:"required"`
 	ONU        int    `json:"onu" binding:"required"`
 	RenderOnly bool   `json:"render_only"`
 }
@@ -45,8 +50,8 @@ type CheckAttenuationRequest struct {
 // AttenuationData represents parsed attenuation information
 type AttenuationData struct {
 	Host        string  `json:"host"`
-	Slot        int     `json:"slot"`
-	Port        int     `json:"port"`
+	Board       int     `json:"board"`
+	PON         int     `json:"pon"`
 	ONU         int     `json:"onu"`
 	Direction   string  `json:"direction"`
 	OLTRxPower  float64 `json:"olt_rx_power_dbm"`
@@ -74,8 +79,8 @@ type UnconfiguredONUDTO struct {
 	OLTIndex     string `json:"olt_index"`
 	Model        string `json:"model"`
 	SerialNumber string `json:"serial_number"`
-	Slot         int    `json:"slot"`
-	Port         int    `json:"port"`
+	Board        int    `json:"board"`
+	PON          int    `json:"pon"`
 }
 
 // UnconfiguredONUListResponse represents response for check unconfigured ONUs
@@ -91,19 +96,19 @@ type UnconfiguredONUListResponse struct {
 
 // UnconfiguredONUListDTO represents the data transfer object for unconfigured ONUs
 type UnconfiguredONUListDTO struct {
-	Host          string                          `json:"host"`
-	TotalCount    int                             `json:"total_count"`
-	ONUs          []UnconfiguredONUDTO            `json:"onus"`
-	GroupedBySlot map[string][]UnconfiguredONUDTO `json:"grouped_by_slot,omitempty"`
-	Status        string                          `json:"status"`
-	RawOutput     string                          `json:"raw_output,omitempty"`
+	Host           string                          `json:"host"`
+	TotalCount     int                             `json:"total_count"`
+	ONUs           []UnconfiguredONUDTO            `json:"onus"`
+	GroupedByBoard map[string][]UnconfiguredONUDTO `json:"grouped_by_board,omitempty"`
+	Status         string                          `json:"status"`
+	RawOutput      string                          `json:"raw_output,omitempty"`
 }
 
 // AttenuationDataDTO represents the data transfer object for attenuation
 type AttenuationDataDTO struct {
 	Host        string  `json:"host"`
-	Slot        int     `json:"slot"`
-	Port        int     `json:"port"`
+	Board       int     `json:"board"`
+	PON         int     `json:"pon"`
 	ONU         int     `json:"onu"`
 	Direction   string  `json:"direction"`
 	OLTRxPower  float64 `json:"olt_rx_power_dbm"`
@@ -217,7 +222,7 @@ type SNMPONUDetailsRequest struct {
 	Timeout   int    `json:"timeout,omitempty"`
 }
 
-// SNMPEmptySlotsRequest represents request for empty ONU slots
+// SNMPEmptySlotsRequest represents request for empty ONU boards
 type SNMPEmptySlotsRequest struct {
 	Host      string `json:"host" binding:"required"`
 	Port      int    `json:"port" binding:"required"`
@@ -225,20 +230,20 @@ type SNMPEmptySlotsRequest struct {
 	Timeout   int    `json:"timeout,omitempty"`
 }
 
-// SNMPEmptySlot represents an empty ONU slot
+// SNMPEmptySlot represents an empty ONU board
 type SNMPEmptySlot struct {
 	Board int `json:"board"`
 	PON   int `json:"pon"`
 	ONUID int `json:"onu_id"`
 }
 
-// SNMPEmptySlotsResponse represents response for empty ONU slots
+// SNMPEmptySlotsResponse represents response for empty ONU boards
 type SNMPEmptySlotsResponse struct {
 	Host          string          `json:"host"`
 	BoardID       int             `json:"board_id"`
 	PONID         int             `json:"pon_id"`
 	TotalEmpty    int             `json:"total_empty"`
-	EmptySlots    []SNMPEmptySlot `json:"empty_slots"`
+	EmptySlots    []SNMPEmptySlot `json:"empty_boards"`
 	ExecutionTime string          `json:"execution_time"`
 	Timestamp     time.Time       `json:"timestamp"`
 }

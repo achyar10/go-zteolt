@@ -53,11 +53,16 @@ func (h *Handlers) AddONU(c *fiber.Ctx) error {
 
 	// Render commands using template
 	commands, _, err := h.templateMgr.RenderTemplate("add-onu", map[string]interface{}{
-		"Slot":         req.Slot,
-		"Port":         req.OLTPort,
-		"Onu":          req.ONU,
-		"SerialNumber": req.SerialNumber,
-		"Code":         req.Code,
+		"Board":          req.Board,
+		"PON":            req.PON,
+		"Onu":            req.ONU,
+		"SerialNumber":   req.SerialNumber,
+		"Name":           req.Name,
+		"SecretPassword": req.SecretPassword,
+		"Description":    req.Description,
+		"VlanID":         req.VlanID,
+		"TcontProfile":   req.TcontProfile,
+		"TrafficLimit":   req.TrafficLimit,
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
@@ -114,9 +119,9 @@ func (h *Handlers) DeleteONU(c *fiber.Ctx) error {
 
 	// Render commands using template
 	commands, _, err := h.templateMgr.RenderTemplate("delete-onu", map[string]interface{}{
-		"Slot": req.Slot,
-		"Port": req.OLTPort,
-		"Onu":  req.ONU,
+		"Board": req.Board,
+		"Pon":   req.PON,
+		"Onu":   req.ONU,
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
@@ -182,9 +187,9 @@ func (h *Handlers) CheckAttenuation(c *fiber.Ctx) error {
 
 	// Render commands using template
 	commands, _, err := h.templateMgr.RenderTemplate("check-attenuation", map[string]interface{}{
-		"Slot": req.Slot,
-		"Port": req.OLTPort,
-		"Onu":  req.ONU,
+		"Board": req.Board,
+		"Pon":   req.PON,
+		"Onu":   req.ONU,
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
@@ -212,14 +217,14 @@ func (h *Handlers) CheckAttenuation(c *fiber.Ctx) error {
 	if result.Success && result.Output != "" {
 		// Extract the actual output (remove headers and prompts)
 		actualOutput := extractAttenuationOutput(result.Output)
-		parsedData := utils.ParseAttenuationOutput(req.Host, req.Slot, req.OLTPort, req.ONU, actualOutput)
+		parsedData := utils.ParseAttenuationOutput(req.Host, req.Board, req.PON, req.ONU, actualOutput)
 
 		// Convert to DTO
 		if parsedData != nil {
 			attenuationData = &AttenuationDataDTO{
 				Host:        parsedData.Host,
-				Slot:        parsedData.Slot,
-				Port:        parsedData.Port,
+				Board:       parsedData.Board,
+				PON:         parsedData.PON,
 				ONU:         parsedData.ONU,
 				Direction:   parsedData.Direction,
 				OLTRxPower:  parsedData.OLTRxPower,
@@ -331,8 +336,8 @@ func (h *Handlers) CheckUnconfigured(c *fiber.Ctx) error {
 					OLTIndex:     onu.OLTIndex,
 					Model:        onu.Model,
 					SerialNumber: onu.SerialNumber,
-					Slot:         onu.Slot,
-					Port:         onu.Port,
+					Board:        onu.Board,
+					PON:          onu.PON,
 				}
 			}
 
@@ -345,20 +350,20 @@ func (h *Handlers) CheckUnconfigured(c *fiber.Ctx) error {
 						OLTIndex:     onu.OLTIndex,
 						Model:        onu.Model,
 						SerialNumber: onu.SerialNumber,
-						Slot:         onu.Slot,
-						Port:         onu.Port,
+						Board:        onu.Board,
+						PON:          onu.PON,
 					}
 				}
 				grouped[slot] = converted
 			}
 
 			unconfiguredData = &UnconfiguredONUListDTO{
-				Host:          parsedData.Host,
-				TotalCount:    parsedData.TotalCount,
-				ONUs:          onus,
-				GroupedBySlot: grouped,
-				Status:        utils.GetUnconfiguredStatus(parsedData.TotalCount),
-				RawOutput:     parsedData.RawOutput,
+				Host:           parsedData.Host,
+				TotalCount:     parsedData.TotalCount,
+				ONUs:           onus,
+				GroupedByBoard: grouped,
+				Status:         utils.GetUnconfiguredStatus(parsedData.TotalCount),
+				RawOutput:      parsedData.RawOutput,
 			}
 		}
 	}

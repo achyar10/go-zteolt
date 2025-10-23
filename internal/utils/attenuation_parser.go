@@ -10,8 +10,8 @@ import (
 // AttenuationData represents parsed attenuation information
 type AttenuationData struct {
 	Host        string  `json:"host"`
-	Slot        int     `json:"slot"`
-	Port        int     `json:"port"`
+	Board       int     `json:"board"`
+	PON         int     `json:"pon"`
 	ONU         int     `json:"onu"`
 	Direction   string  `json:"direction"`
 	OLTRxPower  float64 `json:"olt_rx_power_dbm"`
@@ -24,11 +24,11 @@ type AttenuationData struct {
 }
 
 // ParseAttenuationOutput parses the raw output from show pon power attenuation command
-func ParseAttenuationOutput(host string, slot, port, onu int, rawOutput string) *AttenuationData {
+func ParseAttenuationOutput(host string, board, pon, onu int, rawOutput string) *AttenuationData {
 	data := &AttenuationData{
 		Host:      host,
-		Slot:      slot,
-		Port:      port,
+		Board:     board,
+		PON:       pon,
 		ONU:       onu,
 		RawOutput: rawOutput,
 		Status:    "unknown",
