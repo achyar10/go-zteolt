@@ -146,18 +146,6 @@ func (s *SNMPService) GetONUByBoardAndPON(ctx context.Context, req SNMPRequest) 
 			onuInfo.IPAddress = ip
 		}
 
-		if lastOnline, err := s.getLastOnline(snmp, oltConfig, strconv.Itoa(onuInfo.ID)); err == nil {
-			onuInfo.LastOnline = lastOnline
-			if uptime, err := s.calculateUptime(lastOnline); err == nil {
-				onuInfo.Uptime = uptime
-			}
-		}
-
-		// Get optical distance (loss)
-		if distance, err := s.getOpticalDistance(snmp, oltConfig, strconv.Itoa(onuInfo.ID)); err == nil {
-			onuInfo.GponOpticalDistance = distance
-		}
-
 		onuInformationList = append(onuInformationList, onuInfo)
 	}
 
