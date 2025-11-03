@@ -2,77 +2,76 @@
 # Stage 1: Build stage
 FROM golang:1.24-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install git dan package yang dibutuhkan
+# Tools yang dibutuhkan saat build
 RUN apk add --no-cache git ca-certificates tzdata
 
-# Copy go mod files
+# Copy & download dependencies lebih awal agar cache build efektif
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download && go mod tidy
 
-# Copy source code
+# Copy seluruh sumber
 COPY . .
+
+# Pastikan folder templates ada (agar COPY di stage runtime tidak gagal)
+RUN mkdir -p /app/templates
 
 # Build arguments untuk version dan build time
 ARG VERSION=dev
 ARG BUILD_TIME
 ARG GIT_COMMIT
+# Untuk buildx (multi-arch)
+ARG TARGETOS
+ARG TARGETARCH
 
-# Build server binary dengan optimization
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static" -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME} -X main.gitCommit=${GIT_COMMIT}' \
-    -a -installsuffix cgo \
+# Build server binary (static, kecil, dan reproducible-ish)
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
+    go build -trimpath -buildvcs=false \
+    -ldflags='-w -s -extldflags "-static" -X main.version='${VERSION}' -X main.buildTime='${BUILD_TIME}' -X main.gitCommit='${GIT_COMMIT} \
     -o bin/server cmd/server/main.go
 
-# Note: CLI binary not built - main.go doesn't exist in root directory
-# If CLI is needed, create main.go in root or remove this comment
-
 # Stage 2: Runtime stage
-FROM alpine:latest
+FROM alpine:3.20
 
-# Install ca-certificates untuk HTTPS requests
-RUN apk --no-cache add ca-certificates tzdata
+# Install runtime deps (certificates, tzdata, curl untuk healthcheck)
+RUN apk --no-cache add ca-certificates tzdata curl
 
-# Create non-root user untuk security
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+# Non-root user demi keamanan
+RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
 
-# Set working directory
 WORKDIR /app
 
-# Copy binary dari builder stage
+# Copy binary & assets dari builder
 COPY --from=builder /app/bin/server ./bin/server
-# CLI binary not available - uncomment when main.go exists
-# COPY --from=builder /app/bin/cli ./bin/cli
-
-# Copy templates directory (jika ada)
 COPY --from=builder /app/templates ./templates
 
-# Change ownership ke non-root user
+# Ownership
 RUN chown -R appuser:appgroup /app
 
-# Switch ke non-root user
 USER appuser
 
-# Expose port (default dari aplikasi)
+# Port default aplikasi
 EXPOSE 8080
 
-# Environment variables
+# Env
 ENV GIN_MODE=release
+# Opsional: set zona waktu
+# ENV TZ=Asia/Jakarta
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/health || exit 1
+# Build args perlu dideklarasikan ulang di stage final agar LABEL dapat nilainya
+ARG VERSION=dev
+ARG BUILD_TIME
+ARG GIT_COMMIT
 
-# Default command untuk menjalankan server
-CMD ["./bin/server"]
-
-# Labels untuk metadata
+# Labels
 LABEL maintainer="Achyar Anshorie <achyar@matik.id>" \
-      version="${VERSION}" \
-      description="ZTE OLT Management API" \
-      org.opencontainers.image.source="https://github.com/achyar10/go-zteolt"
+    org.opencontainers.image.title="ZTE OLT Management API" \
+    org.opencontainers.image.description="ZTE OLT Management API" \
+    org.opencontainers.image.version="${VERSION}" \
+    org.opencontainers.image.revision="${GIT_COMMIT}" \
+    org.opencontainers.image.created="${BUILD_TIME}" \
+    org.opencontainers.image.source="https://github.com/achyar10/go-zteolt"
+
+# Jalankan server
+ENTRYPOINT ["./bin/server"]
